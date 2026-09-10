@@ -1,0 +1,88 @@
+# Local test harness for the "concurrency-limit" Kong plugin.
+#
+# Mirrors production topology (Kong OSS 2.5.1 in front of a slow,
+# resource-heavy backend) while staying deployable on a laptop:
+#   kong-database   -> Postgres backing store for Kong (prod likely uses the
+#                      same DB-backed setup; swap for DB-less if prod differs)
+#   kong-migrations -> one-shot bootstrap of Kong's schema
+#   kong            -> a PLAIN, unmodified kong:2.5.1-alpine image. The plugin
+#                      is installed onto it after it's already running, via
+#                      scripts/deploy-plugin.sh (docker exec), the same way
+#                      it would be dropped onto the real bare-metal Kong host.
+#   mock-upstream   -> stand-in for the real backend: a slow,
+#                      concurrency-aware HTTP endpoint used to prove the
+#                      plugin actually caps in-flight requests.
+#
+# The plugin source and helper scripts are bind-mounted read-only into the
+# kong container so deploy-plugin.sh can install them without rebuilding any
+# image -- there is deliberately no custom Kong Dockerfile.
+
+services:
+  kong-database:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_USER: kong
+      POSTGRES_PASSWORD: kong
+      POSTGRES_DB: kong
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "kong"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [kong-net]
+
+  kong-migrations:
+    image: kong:2.5.1-alpine
+    command: kong migrations bootstrap
+    depends_on:
+      kong-database:
+        condition: service_healthy
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kong
+      KONG_PG_DATABASE: kong
+    networks: [kong-net]
+    restart: "no"
+
+  kong:
+    image: kong:2.5.1-alpine
+    depends_on:
+      kong-migrations:
+        condition: service_completed_successfully
+    environment:
+      # Deliberately no KONG_PLUGINS / shared-dict overrides here -- this is
+      # a stock Kong. deploy-plugin.sh adds the plugin and shared dict at
+      # runtime via `kong reload`, mirroring the bare-metal install process.
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kong
+      KONG_PG_DATABASE: kong
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+      KONG_PROXY_LISTEN: 0.0.0.0:8000
+    ports:
+      - "8000:8000" # proxy
+      - "8001:8001" # admin API
+    volumes:
+      - ../kong-plugin:/opt/plugin-src:ro
+      - ../scripts:/opt/scripts:ro
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [kong-net]
+
+  mock-upstream:
+    build: ../mock-upstream
+    networks: [kong-net]
+
+networks:
+  kong-net:
+    driver: bridge

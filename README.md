@@ -501,5 +501,5 @@ capacity is `max_concurrency x number of Kong nodes`.
 
 ## License
 
-Copyright 2026 SixFacet Ltd, licensed under the [Apache License, Version
+Copyright 2026 NextFacet, licensed under the [Apache License, Version
 2.0](LICENSE.txt). See [NOTICE](NOTICE) for third-party attribution.

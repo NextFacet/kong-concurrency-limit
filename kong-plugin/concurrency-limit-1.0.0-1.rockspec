@@ -2,8 +2,7 @@ package = "concurrency-limit"
 version = "1.0.0-1"
 
 source = {
-  -- TODO: replace <your-github-username> once this repo has a real GitHub URL.
-  url = "git+https://github.com/<your-github-username>/kong-concurrency-limit.git",
+  url = "git+https://github.com/NextFacet/kong-concurrency-limit.git",
 }
 
 description = {

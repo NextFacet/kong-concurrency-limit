@@ -499,6 +499,11 @@ to observe real numbers, then enable enforcement -- rather than turning it on
 cluster-wide in one step, since (per the caveats above) the effective total
 capacity is `max_concurrency x number of Kong nodes`.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the branching model and release
+process. Changes are tracked in [CHANGELOG.md](CHANGELOG.md).
+
 ## License
 
 Copyright 2026 NextFacet, licensed under the [Apache License, Version

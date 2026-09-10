@@ -1,0 +1,15 @@
+kong-concurrency-limit
+Copyright 2026 SixFacet Ltd
+
+This product is licensed under the Apache License, Version 2.0.
+See the LICENSE.txt file for the full license text.
+
+-------------------------------------------------------------------------
+
+Third-party runtime dependencies
+
+This plugin is built against resty.limit.conn (part of lua-resty-limit-traffic,
+Copyright (C) Yichun Zhang (agentzh)), which ships as part of the OpenResty
+distribution that Kong itself runs on. No source from that project is
+copied or redistributed in this repository -- it is used at runtime only,
+as already provided by the target Kong installation.

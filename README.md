@@ -498,3 +498,8 @@ harness against representative concurrency/latency) first, run in `dry_run`
 to observe real numbers, then enable enforcement -- rather than turning it on
 cluster-wide in one step, since (per the caveats above) the effective total
 capacity is `max_concurrency x number of Kong nodes`.
+
+## License
+
+Copyright 2026 SixFacet Ltd, licensed under the [Apache License, Version
+2.0](LICENSE.txt). See [NOTICE](NOTICE) for third-party attribution.
